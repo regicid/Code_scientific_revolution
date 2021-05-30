@@ -66,9 +66,7 @@ unused_parameters[[11]] = c(1)
 unused_parameters[[12]] = c(1,3,5,6,7,13)
 names(unused_parameters) = names
 
-unused_parameters = list(unused_parameters[[12]])
-names(unused_parameters) = "L"
-
+names = c("L")
 
 submit_job <- function(nmif=2,np=2,
                        cooling_fraction=.95,n=1){
