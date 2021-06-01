@@ -6,7 +6,7 @@ library(doParallel)
 library(dplyr)
 library(foreach)
 analysis = "MLE_with_sigma2"
-options =  list("dellgen","benoit2c@gmail.com","ALL")
+options =  list("secondgen","benoit2c@gmail.com","ALL")
 names(options) = c("partition","mail-user","mail-type")
 pkg = c("panelPomp")
 cpus = c(12,12,16,16,40,48)
@@ -17,7 +17,8 @@ Countries<-c("Italy","France","Poland","Germany","United Kingdom","Iberia","Russ
 Results = read.csv("Results.csv",row.names = 1)
 Results$Nobs = log(Results$Nobs+1)
 Results$Nobs = Results$Nobs/sd(Results$Nobs)
-Results$gdp = Results$gdp - min(Results$gdp)
+Results$gdp = Results$gdp - min(Results$gdp,na.rm=T)
+Results$protestant = scale(Results$protestant)
 Distances = read.csv("Distances.csv",row.names = 1)
 
 #Create the diffusion matrix
@@ -68,8 +69,8 @@ names(unused_parameters) = names
 
 names = c("L")
 
-submit_job <- function(nmif=2,np=2,
-                       cooling_fraction=.95,n=1){
+submit_job <- function(nmif=10000,np=20000,
+                       cooling_fraction=.95,n=200){
   Pomps = list()
   for(country in Countries){
     data = dplyr::filter(Results,Countries==country)
