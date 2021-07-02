@@ -43,32 +43,36 @@ Csnippet("double eps = fmax(rnorm(1,pow(sigma,2)),0);
          N = z*N*eps + e*cum + f*gdp*cum + a*gdp  + d*diff + b*gdp*diff + g*cum_diff + h*protestant + c + eps2;
          ") -> evol_diff
 
-
+eval = function(i){
+  mf = mifs[[i]]
+  replicate(5000, mf %>% panelPomp::pfilter(Np = 20000) %>% panelPomp::logLik()) %>% logmeanexp(se=TRUE) -> ll
+  return(c(coef(mf),loglik=ll[1],loglik.se=ll[2]))
+}
 
 PARAM = c("bla","a","b","c","d","e","f","z","sigma","sigma_obs","N_0","sigma2","g","h")
 job = list()
 job2 = list()
 mifs_pomp = list()
 unused_parameters = list()
-names = c("A","B","C","D",'E','F','G','H','I','J','K','L')
+names = c("A","B","C","D",'E','F','G','H','I','J','K')
 mifs_pomp = list()
 unused_parameters = list()
-unused_parameters[[1]] = c(1,2,3,5,6,7,8,13,14)
-unused_parameters[[2]] = c(1,2,3,5,6,7,13,14)
-unused_parameters[[3]] = c(1,3,5,6,7,13,14)
-unused_parameters[[4]] = c(1,2,3,5,7,13,14)
-unused_parameters[[5]] = c(1,3,5,6,13,14)
-unused_parameters[[6]] = c(1,2,3,6,7,13,14)
-unused_parameters[[7]] = c(1,3,6,7,13,14)
-unused_parameters[[8]] = c(1,2,5,6,7,13,14)
-unused_parameters[[9]] = c(1,5,6,7,13,14)
-unused_parameters[[10]] = c(1,2,3,5,6,7,14)
+unused_parameters[[1]] = c(1,2,3,5,6,7,8,13)
+unused_parameters[[2]] = c(1,2,3,5,6,7,13)
+unused_parameters[[3]] = c(1,3,5,6,7,13)
+unused_parameters[[4]] = c(1,2,3,5,7,13)
+unused_parameters[[5]] = c(1,3,5,6,13)
+unused_parameters[[6]] = c(1,2,3,6,7,13)
+unused_parameters[[7]] = c(1,3,6,7,13)
+unused_parameters[[8]] = c(1,2,5,6,7,13)
+unused_parameters[[9]] = c(1,5,6,7,13)
+unused_parameters[[10]] = c(1,2,3,5,6,7)
 unused_parameters[[11]] = c(1)
-unused_parameters[[12]] = c(1,3,5,6,7,13)
+#unused_parameters[[12]] = c(1,3,5,6,7,13)
 names(unused_parameters) = names
 
-names = c("L")
-
+#names = c("L")
+names = c("B","D",'E','F','G','H','I','J','K')
 submit_job <- function(nmif=10000,np=20000,
                        cooling_fraction=.95,n=200){
   Pomps = list()
