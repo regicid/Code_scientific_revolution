@@ -31,34 +31,36 @@ Dates = 1300+50*0:11
 
 Var = c(names(Envir_var),"Protestant")
 
-Results = data.frame(matrix(ncol=4+length(Var),nrow=0))
-colnames(Results) = c("Date","Countries","Nobs",Var,"protestant")
-Protestant = c("Germany","Scandinavia","Netherlands","United Kingdom")
-for(i in 1:length(Dates)){
-  for(j in 1:length(countries)){
-    n = nrow(Results)
-    Results[n+1,] = NA
-    Results[n+1,"Date"] = Dates[i]
-    Results[n+1,"Countries"] = countries[j]
-    m = which(Data$Countries == countries[j] & Data$Birth_dates %in% (Dates[i]-60):(Dates[i]-11))
-    Results[n+1,"Nobs"] = (sum(Data[m,"pca"])/Population[countries[j],as.character(Dates[i])])
-    for(var in Var){
-      z = Envir_var[[var]][countries[j],as.character(Dates[i])]
-      if(length(z)>0){Results[n+1,var] = z}}
-  
-  if(Dates[i]> 1500 & countries[j] %in% Protestant){
-    Results[n+1,"protestant"] = 1
-  }else{Results[n+1,"protestant"] = 0}}
+index = function(Data,start=1300,end=1850,countries=Countries,per_capita=TRUE,gap=10,Var = NULL,proxy="pca"){
+  Results = data.frame(matrix(ncol=3,nrow=0))
+  colnames(Results) = c("Date","Countries","Nobs")
+  Dates = seq(start,end,gap)
+  for(i in 1:length(Dates)){
+    for(j in 1:length(countries)){
+      n = nrow(Results)
+      Results[n+1,] = NA
+      Results[n+1,"Date"] = Dates[i]
+      Results[n+1,"Countries"] = countries[j]
+      m = which(Data$Countries == countries[j] & Data$Birth_dates %in% (Dates[i]-60):(Dates[i]-11))
+      if(per_capita){Results[n+1,"Nobs"] = sum(Data[m,proxy],na.rm = T)/Population[countries[j],as.character(Dates[i])] 
+      }else{Results[n+1,"Nobs"] = sum(Data[m,proxy],na.rm = T)}
+      for(var in Var){
+        z = Envir_var[[var]][countries[j],as.character(Dates[i])]
+        if(length(z)>0){Results[n+1,var] = z}}
+      if(Dates[i]> 1500 & countries[j] %in% Protestant){
+        Results[n+1,"protestant"] = 1
+      }else{Results[n+1,"protestant"] = 0}
+      
+      
+    }
+  }
+  Results$Nobs = Results$Nobs/sd(Results$Nobs)
+  for(var in Var){Results[var] = scale(Results[var])}
+  Results$Nobs_log = log(Results$Nobs+1)
+  Results$Nobs_log = Results$Nobs_log/sd(Results$Nobs_log)
+  Results$date = scale(Results$Date)
+  return(Results)
 }
-
-for(var in Var){Results[var] = scale(Results[var])}
-
-
-Results$Nobs = Results$Nobs/sd(Results$Nobs)
-Results$Nobs_log = log(Results$Nobs+1)
-Results$Nobs_log = Results$Nobs_log/sd(Results$Nobs_log)
-Results$date = scale(Results$Date)
-Results$Date = as.numeric(as.factor(Results$Date))
 
 disciplines = c("scientists","composers","painters","philosophers","writers","sculptors","all")
 coef = data.frame(matrix(nrow=length(disciplines),ncol=length(Var)))
@@ -82,7 +84,7 @@ library(strucchange)
 Data_break = Data
 Data_break$Countries = "Europe"
 Results = index(Data_break,countries = "Europe",1300,1650)
-breakpoints(data = Results,Scientific_production~Date,breaks = 1)
+breakpoints(data = Results,Nobs~Date,breaks = 1)
 plot(Fstats(data = Results,Scientific_production~Date))
 
 Data_protestant = Data
