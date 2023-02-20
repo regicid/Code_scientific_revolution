@@ -7,6 +7,7 @@ setwd("~/Code_scientific_revolution")
 Data = read.csv("data_scientists.csv",stringsAsFactors = F) 
 Population = read.table("Population.csv",row.names = 1,sep=",",header = T,check.names = F,stringsAsFactors = F)
 Countries<-c("Netherlands","France","Germany","United Kingdom","Belgium","Russia","Iberia","Italy","Poland","Scandinavia")
+Countries <- c("United Kingdom","Belgium","Netherlands","Scandinavia","France","Germany","Iberia","Italy","Poland","Russia")
 Protestant = c("Germany","Scandinavia","Netherlands","United Kingdom")
 Catholic = c("France","Italy","Iberia","Poland","Belgium")
 
@@ -292,12 +293,25 @@ Data_biologist = filter(Data,Occupation_precise%in% c(" biologist"," entomologis
 
 
 
-share(filter(Data_mathematician,Birth_dates>1490))
+share(filter(Data_mathematician,Birth_dates>1490)) + ggtitle("Mathematicians") + theme(plot.title = element_text(hjust = 0.5))
 ggsave("plots/Share_mathematician.png")
 
-share(filter(Data_physicist,Birth_dates>1490))
+share(filter(Data_physicist,Birth_dates>1490)) + ggtitle("Physicists") + theme(plot.title = element_text(hjust = 0.5))
 ggsave("plots/Share_physicists.png")
 
-share(filter(Data_biologist,Birth_dates>1490))
+share(filter(Data_biologist,Birth_dates>1490)) + ggtitle("Biologists") + theme(plot.title = element_text(hjust = 0.5))
 ggsave("plots/Share_biologists.png")
 
+
+library(FactoMineR)
+Data_zero = Data
+columns = c("bytes_german", "Quotations_german","languages_german", "bytes_french", "Quotations_french","languages_french")
+a = is.na(Data[,columns])
+Data_zero[columns][a] = 0
+pca_non_english = PCA(Data_zero[columns],scale.unit = T,graph=F)
+Data$pca_non_english = pca_non_english$ind$coord[,1]
+Data$pca_non_english = Data$pca_non_english - min(Data$pca_non_english)
+Results = index(Data,proxy = "pca_non_english")
+Results$Countries = factor(Results$Countries,levels=c("United Kingdom","Belgium","Netherlands","Scandinavia","France","Germany","Iberia","Italy","Poland","Russia"))
+plot_results(Results,colors=Colors)
+ggsave("plots/without_enlish_wiki.png")

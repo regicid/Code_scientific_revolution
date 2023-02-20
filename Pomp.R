@@ -28,6 +28,18 @@ rownames(R) = R$Date
 R = R[-1]
 R = R[Countries]
 
+Results$diff = NA
+Results$cum = NA
+Results$cum_diff = NA
+for(i in 1:nrow(Results)){
+  Results$diff[i] = sum(untable(R[as.character(Results$Date[i]),])/untable(Distances[as.character(Results$Countries[i]),])**2)
+  d = Results[1:i,]
+  d = d[d$Countries==d$Countries[i],]
+  Results$cum[i] = sum(d$Nobs[1:nrow(d)-1])
+  Results$cum_diff[i] = sum(d$diff)
+  print(i)
+}
+
 Csnippet("
          N = N_0;
          ") -> rinit
@@ -40,7 +52,7 @@ Csnippet("
          ") -> dmeas
 Csnippet("double eps = fmax(rnorm(1,pow(sigma,2)),0);
          double eps2 = rnorm(0,pow(sigma2,2));
-         N = z*N*eps + e*cum + f*gdp*cum + a*gdp  + d*diff + b*gdp*diff + g*cum_diff + h*protestant + c + eps2;
+         N = z*N*eps + e*cum + f*gdp*cum + a*gdp  + d*diff + b*gdp*diff + g*cum_diff + c + eps2;
          ") -> evol_diff
 
 eval = function(i){
@@ -49,7 +61,7 @@ eval = function(i){
   return(c(coef(mf),loglik=ll[1],loglik.se=ll[2]))
 }
 
-PARAM = c("bla","a","b","c","d","e","f","z","sigma","sigma_obs","N_0","sigma2","g","h")
+PARAM = c("bla","a","b","c","d","e","f","z","sigma","sigma_obs","N_0","sigma2","g")
 job = list()
 job2 = list()
 mifs_pomp = list()
@@ -84,7 +96,7 @@ submit_job <- function(nmif=10000,np=20000,
       t0=1500
     }
     z = which(!is.na(data$gdp))
-    Gdp = data[,c("Date","gdp","protestant")]
+    Gdp = data[,c("Date","gdp")]
     Gdp$diff = rowSums(R/untable(Distances[country,],12)**2)[as.character(data$Date)]
     data = data[c("Date","Nobs")]
     Gdp$cum = vector("numeric",length = nrow(Gdp))
@@ -156,4 +168,5 @@ for(name in names){
   file2 = paste(file2, ".csv",sep="")
   write.csv(estimates,file2)
 }
+
 
